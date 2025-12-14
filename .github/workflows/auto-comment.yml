@@ -1,34 +1,34 @@
-name: Auto Comment on Issues
+# name: Auto Comment on Issues
 
-permissions:
-  issues: write
-  contents: write
+# permissions:
+#   issues: write
+#   contents: write
 
-on:
-  schedule:
-    - cron: "*/5 * * * *"
-  workflow_dispatch:
+# on:
+#   schedule:
+#     - cron: "*/5 * * * *"
+#   workflow_dispatch:
 
-jobs:
-  run-script:
-    runs-on: ubuntu-latest
-    environment: ACI   # ⚠️ MUST MATCH ENVIRONMENT NAME EXACTLY
+# jobs:
+#   run-script:
+#     runs-on: ubuntu-latest
+#     environment: ACI   # ⚠️ MUST MATCH ENVIRONMENT NAME EXACTLY
 
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+#     steps:
+#       - name: Checkout repo
+#         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+#       - name: Setup Node
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: 20
 
-      - name: Install deps
-        run: npm install axios
+#       - name: Install deps
+#         run: npm install axios
 
-      - name: Run script
-        run: node script/autoComment.js
-        env:
-          OWNER: ${{ secrets.OWNER }}
-          REPO:  ${{ secrets.REPO }}
-          TOKEN: ${{ secrets.TOKEN }}
+#       - name: Run script
+#         run: node script/autoComment.js
+#         env:
+#           OWNER: ${{ secrets.OWNER }}
+#           REPO:  ${{ secrets.REPO }}
+#           TOKEN: ${{ secrets.TOKEN }}
