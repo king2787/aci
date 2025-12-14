@@ -1,5 +1,6 @@
 import axios from "axios";
 import fs from "fs";
+import { execSync } from "child_process";
 
 const token = process.env.TOKEN;
 const owner = process.env.OWNER;
@@ -10,11 +11,10 @@ if (!token || !owner || !repo) {
 }
 
 /**
- * FOR LOCAL TESTING
- * Change later if needed
+ * LOCAL TESTING MODE
+ * Change TARGET_USERS later for OSS repos
  */
 const TARGET_USERS = ["anurag2787"];
-const MY_USERNAME = "anurag2787";
 const STATE_FILE = "state/last_issue.txt";
 
 const api = axios.create({
@@ -36,7 +36,7 @@ async function run() {
     `/repos/${owner}/${repo}/issues`,
     {
       params: {
-        state: "all",
+        state: "open", // only open issues
         sort: "created",
         direction: "asc",
         per_page: 100,
@@ -47,23 +47,15 @@ async function run() {
   let maxSeen = lastIssue;
 
   for (const issue of issues) {
-    // ❌ Skip PRs
     if (issue.pull_request) continue;
-
-    // ❌ Skip closed issues (THIS IS WHAT YOU ASKED FOR)
-    if (issue.state === "closed") continue;
-
-    // ❌ Skip already processed
     if (issue.number <= lastIssue) continue;
 
-    // Track progress safely
+    // Always update progress
     if (issue.number > maxSeen) {
       maxSeen = issue.number;
     }
 
     const author = issue.user?.login;
-
-    // ❌ Skip if author not target
     if (!TARGET_USERS.includes(author)) continue;
 
     const body = `@${author} could you please assign this to me? I’m familiar with this area and would like to take it up.`;
@@ -72,9 +64,27 @@ async function run() {
     console.log(`✅ Commented on issue #${issue.number}`);
   }
 
-  // Persist progress
+  // If nothing changed, don’t commit
+  if (maxSeen === lastIssue) {
+    console.log("ℹ️ No new issues. State unchanged.");
+    return;
+  }
+
+  // Persist progress locally
   fs.writeFileSync(STATE_FILE, String(maxSeen));
-  console.log(`📌 Last processed issue: ${maxSeen}`);
+  console.log(`📌 Updated last issue to ${maxSeen}`);
+
+  // Commit & push state file
+  try {
+    execSync('git config user.email "bot@example.com"');
+    execSync('git config user.name "GitHub Action Bot"');
+    execSync(`git add ${STATE_FILE}`);
+    execSync(`git commit -m "chore: update last processed issue to ${maxSeen}"`);
+    execSync("git push");
+    console.log("🚀 State committed to repository");
+  } catch (err) {
+    console.warn("⚠️ Failed to push state update:", err.message);
+  }
 }
 
 run().catch(err => {
