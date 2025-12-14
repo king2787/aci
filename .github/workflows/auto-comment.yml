@@ -12,7 +12,7 @@ on:
 jobs:
   run-script:
     runs-on: ubuntu-latest
-    environment: production   # 👈 THIS LINE IS REQUIRED
+    environment: production   # MUST match environment name exactly
 
     steps:
       - name: Checkout repository
@@ -28,3 +28,7 @@ jobs:
 
       - name: Run auto comment script
         run: node script/autoComment.js
+        env:
+          OWNER: ${{ vars.OWNER }}
+          REPO:  ${{ vars.REPO }}
+          TOKEN: ${{ secrets.TOKEN }}
