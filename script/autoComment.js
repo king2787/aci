@@ -1,39 +1,62 @@
 import axios from "axios";
 import fs from "fs";
+import path from "path";
 
-const token = process.env.TOKEN;
-const owner = process.env.OWNER;
-const repo = process.env.REPO;
+/* =======================
+   ENV VALIDATION (LOUD)
+   ======================= */
+const TOKEN = process.env.TOKEN;
+const OWNER = process.env.OWNER;
+const REPO = process.env.REPO;
 
-if (!token || !owner || !repo) {
+console.log("ENV CHECK =>", {
+  TOKEN: TOKEN ? "SET" : "MISSING",
+  OWNER,
+  REPO,
+});
+
+if (!TOKEN || !OWNER || !REPO) {
   throw new Error("Missing TOKEN / OWNER / REPO env variables");
 }
 
-/**
- * FOR LOCAL TESTING
- * Change later if needed
- */
+/* =======================
+   CONFIG
+   ======================= */
 const TARGET_USERS = ["anurag2787"];
 const MY_USERNAME = "anurag2787";
-const STATE_FILE = "state/last_issue.txt";
 
+const STATE_DIR = "state";
+const STATE_FILE = path.join(STATE_DIR, "last_issue.txt");
+
+if (!fs.existsSync(STATE_DIR)) {
+  fs.mkdirSync(STATE_DIR);
+}
+
+/* =======================
+   API CLIENT
+   ======================= */
 const api = axios.create({
   baseURL: "https://api.github.com",
   headers: {
-    Authorization: `Bearer ${token}`,
+    Authorization: `Bearer ${TOKEN}`,
     Accept: "application/vnd.github+json",
   },
 });
 
-// Read last processed issue number
+/* =======================
+   LOAD STATE
+   ======================= */
 let lastIssue = 0;
 if (fs.existsSync(STATE_FILE)) {
   lastIssue = Number(fs.readFileSync(STATE_FILE, "utf-8")) || 0;
 }
 
+/* =======================
+   MAIN
+   ======================= */
 async function run() {
   const { data: issues } = await api.get(
-    `/repos/${owner}/${repo}/issues`,
+    `/repos/${OWNER}/${REPO}/issues`,
     {
       params: {
         state: "all",
@@ -47,24 +70,23 @@ async function run() {
   let maxSeen = lastIssue;
 
   for (const issue of issues) {
-    // ❌ Skip PRs
+    // Skip PRs
     if (issue.pull_request) continue;
 
-    // ❌ Skip closed issues (THIS IS WHAT YOU ASKED FOR)
+    // Skip closed issues
     if (issue.state === "closed") continue;
 
-    // ❌ Skip already processed
+    // Skip already processed
     if (issue.number <= lastIssue) continue;
 
-    // Track progress safely
     if (issue.number > maxSeen) {
       maxSeen = issue.number;
     }
 
     const author = issue.user?.login;
 
-    // ❌ Skip if author not target
     if (!TARGET_USERS.includes(author)) continue;
+    if (author === MY_USERNAME) continue;
 
     const body = `@${author} could you please assign this to me? I’m familiar with this area and would like to take it up.`;
 
@@ -72,7 +94,6 @@ async function run() {
     console.log(`✅ Commented on issue #${issue.number}`);
   }
 
-  // Persist progress
   fs.writeFileSync(STATE_FILE, String(maxSeen));
   console.log(`📌 Last processed issue: ${maxSeen}`);
 }

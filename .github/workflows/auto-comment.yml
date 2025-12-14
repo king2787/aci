@@ -12,21 +12,21 @@ on:
 jobs:
   run-script:
     runs-on: ubuntu-latest
-    environment: production   # MUST match environment name exactly
+    environment: ACI   # ⚠️ MUST MATCH ENVIRONMENT NAME EXACTLY
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Install dependencies
+      - name: Install deps
         run: npm install axios
 
-      - name: Run auto comment script
+      - name: Run script
         run: node script/autoComment.js
         env:
           OWNER: ${{ vars.OWNER }}
