@@ -1,9 +1,13 @@
 name: Auto Comment on Issues
 
+permissions:
+  issues: write
+  contents: read
+
 on:
   schedule:
-    - cron: "*/5 * * * *"   # every 5 minutes
-  workflow_dispatch:        # manual trigger
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
 
 jobs:
   run-script:
@@ -24,6 +28,6 @@ jobs:
       - name: Run auto comment script
         run: node script/autoComment.js
         env:
-          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TOKEN: ${{ secrets.TOKEN }}
           OWNER: anurag2787
           REPO: ACI
