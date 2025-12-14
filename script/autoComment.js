@@ -14,7 +14,7 @@ if (!token || !owner || !repo) {
  * LOCAL TESTING MODE
  * Change TARGET_USERS later for OSS repos
  */
-const TARGET_USERS = ["anurag2787"];
+const TARGET_USERS = ["king2787", "arkid15r", "kasya"];
 const STATE_FILE = "state/last_issue.txt";
 
 const api = axios.create({
