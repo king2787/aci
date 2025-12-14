@@ -29,6 +29,6 @@ jobs:
       - name: Run script
         run: node script/autoComment.js
         env:
-          OWNER: ${{ vars.OWNER }}
-          REPO:  ${{ vars.REPO }}
+          OWNER: ${{ secrets.OWNER }}
+          REPO:  ${{ secrets.REPO }}
           TOKEN: ${{ secrets.TOKEN }}
