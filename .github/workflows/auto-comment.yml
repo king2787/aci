@@ -2,7 +2,7 @@ name: Auto Comment on Issues
 
 permissions:
   issues: write
-  contents: read
+  contents: write
 
 on:
   schedule:
